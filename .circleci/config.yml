@@ -1,0 +1,56 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    steps:
+      - checkout
+      - run:
+          name: Build Artifact
+          command: |
+            pwd
+            cd webapp/CloudApp
+            pwd
+            ls -al
+            ./gradlew clean
+            ./gradlew build
+            cd build/libs
+            ls -al
+            cd ../../..
+            pwd
+            ls -al
+      - run:
+          name: Zip Artifact
+          command: |
+            echo "Hello the current build number is ${CIRCLE_BUILD_NUM}"
+            pwd
+            ls -al
+            mkdir -p codedeploy_artifact
+            cp infrastructure/aws/codedeploy/*.sh .
+            mv webapp/CloudApp/build/libs/cloudapp-0.0.1-SNAPSHOT.war webapp/CloudApp/build/libs/CloudApp.war
+            zip -r csye6225-web-app-${CIRCLE_BUILD_NUM}.zip webapp/CloudApp/build/libs/CloudApp.war *.sh *.yml
+            ls -al
+            mv csye6225-web-app-${CIRCLE_BUILD_NUM}.zip codedeploy_artifact/
+            ls -al
+            pwd
+            cd codedeploy_artifact
+            ls -al
+            pwd
+            cd ..
+            pwd
+            ls -al
+      - run:
+          name: Upload Artifact to S3
+          command: |
+            echo "Hello Upload Artifact to S3"
+            sudo apt-get install python3  
+            sudo apt-get install awscli
+            aws --version
+            aws configure list
+            aws s3 sync /home/circleci/project/codedeploy_artifact s3://${s3_bucket}
+      - run:
+          name: Make CodeDeploy API call
+          command: |
+            echo "Hello CodeDeploy"
+            aws deploy create-deployment --application-name csye6225-webapp --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name csye6225-webapp-deployment --s3-location bucket=${s3_bucket},bundleType=zip,key=csye6225-web-app-${CIRCLE_BUILD_NUM}.zip --description "testing"
+            echo "code deployment complete"
