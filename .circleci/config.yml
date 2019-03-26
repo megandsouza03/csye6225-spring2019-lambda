@@ -6,20 +6,15 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install AWS CLI & Build Artifact
+          name: Build Artifact
           command: |
-            sudo apt-get install python3  
-            sudo apt-get install awscli
-            aws --version
-            aws configure list
             pwd
-            chmod +x afterInstall.sh
-            cd webapp/lambdaFunction
+            cd webapp/CloudApp
             pwd
             ls -al
             ./gradlew clean
-            ./gradlew buildZip
-            cd build/distributions
+            ./gradlew build
+            cd build/libs
             ls -al
             cd ../../..
             pwd
@@ -30,30 +25,32 @@ jobs:
             echo "Hello the current build number is ${CIRCLE_BUILD_NUM}"
             pwd
             ls -al
-            cd ..
+            mkdir -p codedeploy_artifact
+            cp infrastructure/aws/codedeploy/*.sh .
+            mv webapp/CloudApp/build/libs/cloudapp-0.0.1-SNAPSHOT.war webapp/CloudApp/build/libs/CloudApp.war
+            zip -r csye6225-web-app-${CIRCLE_BUILD_NUM}.zip webapp/CloudApp/build/libs/CloudApp.war *.sh *.yml
             ls -al
-            mkdir lambda_artifact
+            mv csye6225-web-app-${CIRCLE_BUILD_NUM}.zip codedeploy_artifact/
+            ls -al
             pwd
-            cd webapp/lambdaFunction/build/distributions
-            ls -al
-            cd ../../../..
-            mv webapp/lambdaFunction/build/distributions/lambdaFunction.zip lambda_artifact/
-            cd lambda_artifact
+            cd codedeploy_artifact
             ls -al
             pwd
             cd ..
             pwd
             ls -al
       - run:
-          name: Upload Lambda Artifact to S3
+          name: Upload Artifact to S3
           command: |
             echo "Hello Upload Artifact to S3"
+            sudo apt-get install python3  
+            sudo apt-get install awscli
             aws --version
             aws configure list
-            aws s3 sync /home/circleci/project/lambda_artifact s3://${s3_bucket}
+            aws s3 sync /home/circleci/project/codedeploy_artifact s3://${s3_bucket}
       - run:
-          name: AWS Lambda Update Function Code
+          name: Make CodeDeploy API call
           command: |
-            echo "Hello AWS Lambda Update Function Code"
-            aws lambda update-function-code --function-name LambdaApp --region us-east-1 --s3-bucket ${s3_bucket} --s3-key lambdaFunction.zip
+            echo "Hello CodeDeploy"
+            aws deploy create-deployment --application-name csye6225-webapp --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name csye6225-webapp-deployment --s3-location bucket=${s3_bucket},bundleType=zip,key=csye6225-web-app-${CIRCLE_BUILD_NUM}.zip --description "testing"
             echo "code deployment complete"
