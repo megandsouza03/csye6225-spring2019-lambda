@@ -14,7 +14,7 @@ jobs:
             aws configure list
             pwd
             chmod +x afterInstall.sh
-            cd webapp
+            cd webapp/lambdaFunction
             pwd
             ls -al
             ./gradlew clean
@@ -34,11 +34,10 @@ jobs:
             ls -al
             mkdir lambda_artifact
             pwd
-            cd webapp/build/distributions
+            cd webapp/lambdaFunction/build/distributions
             ls -al
             cd ../../../..
-            mv webapp/build/distributions/webapp-1.0-SNAPSHOT.zip webapp/build/distributions/lambdaFunction.zip
-            mv webapp/build/distributions/lambdaFunction.zip lambda_artifact/
+            mv webapp/lambdaFunction/build/distributions/lambdaFunction.zip lambda_artifact/
             cd lambda_artifact
             ls -al
             pwd
