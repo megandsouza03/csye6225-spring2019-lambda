@@ -36,10 +36,10 @@ jobs:
             pwd
             cd project/webapp/build/distributions
             ls -al
-            cd ../../../..
-            mv webapp/build/distributions/lambdaFunction.zip lambda_artifact/
-            cd lambda_artifact
             mv webapp-1.0-SNAPSHOT.zip lambdaFunction.zip
+            cd ../../../..
+            mv project/webapp/build/distributions/lambdaFunction.zip lambda_artifact/
+            cd lambda_artifact
             ls -al
             pwd
             cd ..
