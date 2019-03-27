@@ -1,4 +1,4 @@
-package lambdaFunction;
+package index;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
