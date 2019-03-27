@@ -51,7 +51,7 @@ jobs:
             echo "Hello Upload Artifact to S3"
             aws --version
             aws configure list
-            aws s3 sync /home/circleci/project/lambda_artifact s3://${s3_bucket}
+            aws s3 sync /home/circleci/lambda_artifact s3://${s3_bucket}
       - run:
           name: AWS Lambda Update Function Code
           command: |
