@@ -1,0 +1,60 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    steps:
+      - checkout
+      - run:
+          name: Install AWS CLI & Build Artifact
+          command: |
+            sudo apt-get install python3  
+            sudo apt-get install awscli
+            aws --version
+            aws configure list
+            pwd
+            chmod +x afterInstall.sh
+            cd webapp
+            pwd
+            ls -al
+            ./gradlew clean
+            ./gradlew buildZip
+            cd build/distributions
+            ls -al
+            cd ../../..
+            pwd
+            ls -al
+      - run:
+          name: Zip Artifact
+          command: |
+            echo "Hello the current build number is ${CIRCLE_BUILD_NUM}"
+            pwd
+            ls -al
+            cd ..
+            ls -al
+            mkdir lambda_artifact
+            pwd
+            cd project/webapp/build/distributions
+            ls -al
+            mv webapp-1.0-SNAPSHOT.zip lambdaFunction.zip
+            cd ../../../..
+            mv project/webapp/build/distributions/lambdaFunction.zip lambda_artifact/
+            cd lambda_artifact
+            ls -al
+            pwd
+            cd ..
+            pwd
+            ls -al
+      - run:
+          name: Upload Lambda Artifact to S3
+          command: |
+            echo "Hello Upload Artifact to S3"
+            aws --version
+            aws configure list
+            aws s3 sync /home/circleci/lambda_artifact s3://${s3_bucket}
+      - run:
+          name: AWS Lambda Update Function Code
+          command: |
+            echo "Hello AWS Lambda Update Function Code"
+            aws lambda update-function-code --function-name LambdaApp --region us-east-1 --s3-bucket ${s3_bucket} --s3-key lambdaFunction.zip
+            echo "code deployment complete"
