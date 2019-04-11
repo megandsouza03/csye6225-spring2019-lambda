@@ -40,7 +40,7 @@ public class LogEvent implements RequestHandler<SNSEvent, Object> {
         //Creating ttl
         context.getLogger().log("Invocation started: " + timeStamp);
         long now = Instant.now().getEpochSecond(); // unix time
-        long ttl = 60 * 20; // ttl set to 20 min
+        long ttl = 60 * 1; // ttl set to 20 min
         long totalttl = ttl + now;
 
         //Function Excecution for sending the email
